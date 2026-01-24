@@ -1,4 +1,5 @@
-/.kiro
+# Kiro specs (mantener en repo para documentación)
+# /.kiro
 # Entorno virtual de Python
 venv/
 env/
