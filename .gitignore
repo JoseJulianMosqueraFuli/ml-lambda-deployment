@@ -1,0 +1,65 @@
+/.kiro
+# Entorno virtual de Python
+venv/
+env/
+.venv/
+ENV/
+
+# Archivos de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Distribuciones y builds
+dist/
+build/
+*.egg-info/
+
+# Modelos entrenados (si son grandes)
+*.pkl
+*.joblib
+*.h5
+*.model
+*.pth
+
+# Archivos de Lambda deployment
+deployment_package.zip
+*.zip
+package/
+
+# Credenciales y configuraciones sensibles
+.env
+*.env
+.env.local
+secrets.json
+config.yaml
+aws_config.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Logs y datos temporales
+*.log
+logs/
+tmp/
+temp/
+
+# Jupyter notebooks
+.ipynb_checkpoints/
+
+# Covertura de tests
+.coverage
+htmlcov/
+
+# Archivos específicos de AWS
+.cdk.out/
+.sam/
