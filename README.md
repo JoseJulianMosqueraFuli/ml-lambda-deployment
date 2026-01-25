@@ -1,8 +1,8 @@
-# ML Lambda Deployment 🚀
+# ML Lambda Deployment
 
 Proyecto de aprendizaje para desplegar un modelo de Machine Learning en AWS Lambda con API Gateway.
 
-## 📋 Descripción
+## Descripción
 
 Este proyecto implementa un flujo completo de MLOps básico:
 
@@ -11,7 +11,7 @@ Este proyecto implementa un flujo completo de MLOps básico:
 3. **Empaquetado** para AWS Lambda
 4. **Despliegue** como API serverless
 
-## 🎯 Objetivos de Aprendizaje
+## Objetivos de Aprendizaje
 
 - Gestión de dependencias con Poetry
 - Entrenamiento y evaluación de modelos con scikit-learn
@@ -20,7 +20,7 @@ Este proyecto implementa un flujo completo de MLOps básico:
 - Configuración de API Gateway
 - Testing con pytest y property-based testing (Hypothesis)
 
-## 🏗️ Arquitectura
+## Arquitectura
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -35,7 +35,7 @@ Este proyecto implementa un flujo completo de MLOps básico:
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Requisitos Previos
 
@@ -77,7 +77,7 @@ poetry run python scripts/package.py
 poetry run python scripts/deploy.py --environment dev
 ```
 
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 ml-lambda-deployment/
@@ -132,13 +132,13 @@ poetry run pytest --cov=src/ml_lambda
 poetry run pytest tests/property/
 ```
 
-## 📚 Documentación Adicional
+## Documentación Adicional
 
 - [Especificación de Requisitos](.kiro/specs/ml-lambda-deployment/requirements.md)
 - [Documento de Diseño](.kiro/specs/ml-lambda-deployment/design.md)
 - [Plan de Implementación](.kiro/specs/ml-lambda-deployment/tasks.md)
 
-## 📄 Licencia
+## Licencia
 
 MIT License - ver [LICENSE](LICENSE)
 
