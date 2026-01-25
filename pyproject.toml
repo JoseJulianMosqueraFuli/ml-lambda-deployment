@@ -21,12 +21,6 @@ black = "^24.1.0"
 mypy = "^1.8.0"
 ruff = "^0.2.0"
 
-[tool.poetry.scripts]
-train = "scripts.train:main"
-test = "pytest:main"
-lint = "scripts.lint:main"
-export-requirements = "scripts.export_requirements:main"
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
@@ -36,7 +30,6 @@ addopts = "-v --cov=src/ml_lambda --cov-report=term-missing"
 [tool.black]
 line-length = 100
 target-version = ["py311"]
-include = '\.pyi?$'
 
 [tool.ruff]
 line-length = 100
