@@ -1,0 +1,54 @@
+[tool.poetry]
+name = "ml-lambda-deployment"
+version = "1.0.0"
+description = "ML model deployment to AWS Lambda with API Gateway - A learning project for Python ML and serverless deployment"
+authors = ["Developer <developer@example.com>"]
+readme = "README.md"
+packages = [{include = "ml_lambda", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+scikit-learn = "^1.4.0"
+numpy = "^1.26.0"
+joblib = "^1.3.0"
+boto3 = "^1.34.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+pytest-cov = "^4.1.0"
+hypothesis = "^6.98.0"
+black = "^24.1.0"
+mypy = "^1.8.0"
+ruff = "^0.2.0"
+
+[tool.poetry.scripts]
+train = "scripts.train:main"
+test = "pytest:main"
+lint = "scripts.lint:main"
+export-requirements = "scripts.export_requirements:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --cov=src/ml_lambda --cov-report=term-missing"
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+include = '\.pyi?$'
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
