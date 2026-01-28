@@ -1,0 +1,2 @@
+# Directorio para modelos serializados
+# Los archivos .joblib se ignoran en .gitignore
