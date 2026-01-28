@@ -132,11 +132,18 @@ poetry run pytest --cov=src/ml_lambda
 poetry run pytest tests/property/
 ```
 
-## Documentación Adicional
+## Documentación
 
-- [Especificación de Requisitos](.kiro/specs/ml-lambda-deployment/requirements.md)
-- [Documento de Diseño](.kiro/specs/ml-lambda-deployment/design.md)
-- [Plan de Implementación](.kiro/specs/ml-lambda-deployment/tasks.md)
+### Guías de Aprendizaje
+
+- [Arquitectura del Proyecto](docs/ARCHITECTURE.md) - Cómo funciona todo, flujo de datos
+- [Conceptos de ML](docs/CONCEPTS.md) - Train/test split, métricas, Random Forest
+
+### Especificaciones Técnicas
+
+- [Requisitos](.kiro/specs/ml-lambda-deployment/requirements.md)
+- [Diseño](.kiro/specs/ml-lambda-deployment/design.md)
+- [Plan de Tareas](.kiro/specs/ml-lambda-deployment/tasks.md)
 
 ## Licencia
 
