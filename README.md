@@ -1,106 +1,122 @@
 # ML Lambda Deployment
 
-Proyecto de aprendizaje para desplegar un modelo de Machine Learning en AWS Lambda con API Gateway.
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Poetry](https://img.shields.io/badge/dependency%20management-poetry-blue)](https://python-poetry.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Descripción
+English | [Español](README.es.md)
 
-Este proyecto implementa un flujo completo de MLOps básico:
+Deploy machine learning models to AWS Lambda with API Gateway. A complete MLOps pipeline from training to serverless inference.
 
-1. **Entrenamiento local** de un modelo de clasificación (Iris dataset)
-2. **Serialización** del modelo entrenado
-3. **Empaquetado** para AWS Lambda
-4. **Despliegue** como API serverless
+## Overview
 
-## Objetivos de Aprendizaje
+This project implements an end-to-end ML deployment workflow:
 
-- Gestión de dependencias con Poetry
-- Entrenamiento y evaluación de modelos con scikit-learn
-- Serialización de modelos ML
-- Despliegue serverless en AWS Lambda
-- Configuración de API Gateway
-- Testing con pytest y property-based testing (Hypothesis)
+- **Data Processing**: Load, validate, split, and normalize the Iris dataset
+- **Model Training**: Train a Random Forest classifier with cross-validation and comprehensive metrics
+- **Model Serialization**: Save trained models with metadata and integrity verification
+- **Serverless Inference**: Deploy as an AWS Lambda function behind API Gateway
+- **Structured Logging**: JSON-formatted logs for observability
 
-## Arquitectura
+## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    FASE LOCAL                                │
-│  Dataset Iris → Entrenamiento → Serialización → Empaquetado │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                         LOCAL PIPELINE                           │
+│                                                                  │
+│   ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐  │
+│   │  Dataset │───▶│ Process  │───▶│  Train   │───▶│ Serialize│  │
+│   │   Iris   │    │  & Split │    │  Model   │    │  Model   │  │
+│   └──────────┘    └──────────┘    └──────────┘    └──────────┘  │
+└─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    FASE CLOUD (AWS)                          │
-│  Cliente HTTP → API Gateway → Lambda → Modelo → Predicción  │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                         AWS DEPLOYMENT                           │
+│                                                                  │
+│   ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐  │
+│   │  Client  │───▶│   API    │───▶│  Lambda  │───▶│  Model   │  │
+│   │   HTTP   │    │ Gateway  │    │ Handler  │    │ Predict  │  │
+│   └──────────┘    └──────────┘    └──────────┘    └──────────┘  │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-## Quick Start
-
-### Requisitos Previos
+## Requirements
 
 - Python 3.11+
-- Poetry
-- AWS CLI configurado (para despliegue)
+- [Poetry](https://python-poetry.org/docs/#installation)
+- AWS CLI configured (for deployment)
 
-### Instalación
+## Installation
 
 ```bash
-# Clonar repositorio
-git clone <repo-url>
+git clone https://github.com/JoseJulianMosqueraFuli/ml-lambda-deployment.git
 cd ml-lambda-deployment
-
-# Instalar dependencias con Poetry
 poetry install
-
-# Activar entorno virtual
-poetry shell
 ```
 
-### Entrenamiento Local
+## Usage
+
+### Train a Model
 
 ```bash
-# Entrenar modelo
 poetry run train
-
-# Ejecutar tests
-poetry run test
 ```
 
-### Despliegue a AWS
+This will:
+
+1. Load and preprocess the Iris dataset (80/20 train/test split)
+2. Train a Random Forest classifier with cross-validation
+3. Evaluate metrics (accuracy, precision, recall, F1-score)
+4. Save the model to `artifacts/`
+
+### Run Tests
 
 ```bash
-# Crear paquete de despliegue
-poetry run python scripts/package.py
+# All tests
+poetry run pytest
 
-# Desplegar a AWS
-poetry run python scripts/deploy.py --environment dev
+# With coverage report
+poetry run pytest --cov=src/ml_lambda --cov-report=term-missing
+
+# Property-based tests only
+poetry run pytest tests/property/
 ```
 
-## Estructura del Proyecto
+### Code Quality
+
+```bash
+poetry run lint
+```
+
+## Project Structure
 
 ```
 ml-lambda-deployment/
-├── src/ml_lambda/          # Código fuente principal
-│   ├── data/               # Procesamiento de datos
-│   ├── training/           # Entrenamiento y evaluación
-│   ├── model/              # Serialización de modelos
-│   ├── inference/          # Handler Lambda y validación
-│   ├── utils/              # Logging y excepciones
-│   └── deploy/             # Empaquetado y despliegue
-├── tests/                  # Tests unitarios, integración y property
-├── scripts/                # Scripts de entrenamiento y despliegue
-├── artifacts/              # Modelos serializados
-└── legacy/                 # Código original (referencia)
+├── src/ml_lambda/
+│   ├── config.py           # Configuration dataclasses
+│   ├── data/               # Data loading and preprocessing
+│   ├── training/           # Model training and evaluation
+│   ├── model/              # Model serialization
+│   ├── inference/          # Lambda handler and validation
+│   ├── deploy/             # Packaging and AWS deployment
+│   └── utils/              # Logging and custom exceptions
+├── tests/
+│   ├── unit/               # Unit tests
+│   ├── property/           # Property-based tests (Hypothesis)
+│   └── integration/        # Integration tests
+├── scripts/                # CLI scripts
+├── artifacts/              # Trained models
+└── docs/                   # Documentation
 ```
 
-## 🔌 API
+## API Reference
 
 ### POST /predict
 
-Realiza una predicción de clasificación de flores Iris.
+Classify an Iris flower based on its features.
 
-**Request:**
+**Request**
 
 ```json
 {
@@ -108,7 +124,9 @@ Realiza una predicción de clasificación de flores Iris.
 }
 ```
 
-**Response:**
+Features (in order): sepal length, sepal width, petal length, petal width (cm)
+
+**Response**
 
 ```json
 {
@@ -119,36 +137,19 @@ Realiza una predicción de clasificación de flores Iris.
 }
 ```
 
-## 🧪 Testing
+## Documentation
 
-```bash
-# Ejecutar todos los tests
-poetry run pytest
+- [Architecture Guide](docs/ARCHITECTURE.md) - System design and data flow
+- [ML Concepts](docs/CONCEPTS.md) - Machine learning fundamentals
 
-# Con cobertura
-poetry run pytest --cov=src/ml_lambda
+## Testing Strategy
 
-# Solo property tests
-poetry run pytest tests/property/
-```
+The project uses a comprehensive testing approach:
 
-## Documentación
+- **Unit Tests**: Validate individual components
+- **Property-Based Tests**: Use [Hypothesis](https://hypothesis.readthedocs.io/) to verify invariants across random inputs
+- **Integration Tests**: Verify end-to-end workflows
 
-### Guías de Aprendizaje
+## License
 
-- [Arquitectura del Proyecto](docs/ARCHITECTURE.md) - Cómo funciona todo, flujo de datos
-- [Conceptos de ML](docs/CONCEPTS.md) - Train/test split, métricas, Random Forest
-
-### Especificaciones Técnicas
-
-- [Requisitos](.kiro/specs/ml-lambda-deployment/requirements.md)
-- [Diseño](.kiro/specs/ml-lambda-deployment/design.md)
-- [Plan de Tareas](.kiro/specs/ml-lambda-deployment/tasks.md)
-
-## Licencia
-
-MIT License - ver [LICENSE](LICENSE)
-
-## 👤 Autor
-
-Proyecto de aprendizaje - ML + AWS Lambda
+[MIT](LICENSE)
