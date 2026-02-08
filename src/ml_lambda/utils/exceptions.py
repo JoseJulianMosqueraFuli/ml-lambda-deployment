@@ -9,7 +9,7 @@ class MLLambdaError(Exception):
 
 class DataValidationError(MLLambdaError):
     """Error en validación de datos.
-    
+
     Se lanza cuando los datos de entrada no cumplen con los requisitos:
     - Valores nulos detectados
     - Formato incorrecto
@@ -21,7 +21,7 @@ class DataValidationError(MLLambdaError):
 
 class ModelNotTrainedError(MLLambdaError):
     """Modelo no ha sido entrenado.
-    
+
     Se lanza cuando se intenta usar un modelo que no ha sido entrenado.
     """
 
@@ -30,7 +30,7 @@ class ModelNotTrainedError(MLLambdaError):
 
 class ModelNotFoundError(MLLambdaError):
     """Archivo de modelo no encontrado.
-    
+
     Se lanza cuando el archivo del modelo serializado no existe.
     """
 
@@ -79,7 +79,7 @@ class AWSCredentialsError(MLLambdaError):
 
 class DeploymentError(MLLambdaError):
     """Error durante despliegue.
-    
+
     Se lanza cuando ocurre un error durante el despliegue a AWS.
     """
 
