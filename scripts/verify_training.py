@@ -55,9 +55,9 @@ def main() -> int:
     trainer = ModelTrainer(config)
     result = trainer.train(X_train_norm, y_train)
 
-    print(f"   - Tiempo de entrenamiento: {result.training_time_seconds:.4f}s")
-    print(f"   - Cross-validation scores: {[f'{s:.4f}' for s in result.cv_scores]}")
-    print(f"   - CV Mean: {result.cv_mean:.4f} (+/- {result.cv_std:.4f})")
+    print(f"Tiempo de entrenamiento: {result.training_time_seconds:.4f}s")
+    print(f"Cross-validation scores: {[f'{s:.4f}' for s in result.cv_scores]}")
+    print(f"CV Mean: {result.cv_mean:.4f} (+/- {result.cv_std:.4f})")
 
     # 5. Evaluar modelo
     print("\n5. Evaluando modelo en datos de test...")

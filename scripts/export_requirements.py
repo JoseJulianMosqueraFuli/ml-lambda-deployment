@@ -8,7 +8,7 @@ from pathlib import Path
 def main() -> int:
     """Exporta requirements.txt para Lambda (sin deps de desarrollo)."""
     output_path = Path("requirements.txt")
-    
+
     try:
         result = subprocess.run(
             ["poetry", "export", "--without", "dev", "--format", "requirements.txt"],
@@ -16,12 +16,12 @@ def main() -> int:
             text=True,
             check=True,
         )
-        
+
         output_path.write_text(result.stdout)
         print(f"✓ Requirements exportados a {output_path}")
         print(f"  Líneas: {len(result.stdout.splitlines())}")
         return 0
-        
+
     except subprocess.CalledProcessError as e:
         print(f"✗ Error exportando requirements: {e.stderr}", file=sys.stderr)
         return 1

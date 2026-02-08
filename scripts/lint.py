@@ -11,20 +11,20 @@ def main() -> int:
         (["ruff", "check", "src/", "tests/", "scripts/"], "Ruff"),
         (["mypy", "src/"], "Mypy"),
     ]
-    
+
     failed = False
     for cmd, name in commands:
         print(f"\n{'='*40}")
         print(f"Ejecutando {name}...")
         print(f"{'='*40}")
-        
+
         result = subprocess.run(cmd)
         if result.returncode != 0:
             failed = True
             print(f"✗ {name} encontró problemas")
         else:
             print(f"✓ {name} OK")
-    
+
     return 1 if failed else 0
 
 
