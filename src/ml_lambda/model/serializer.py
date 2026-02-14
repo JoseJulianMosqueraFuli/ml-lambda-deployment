@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from src.ml_lambda.utils.exceptions import (
+from ml_lambda.utils.exceptions import (
     ModelCorruptedError,
     ModelNotFoundError,
 )
