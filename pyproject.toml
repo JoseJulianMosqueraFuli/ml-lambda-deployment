@@ -6,6 +6,8 @@ authors = ["Developer <developer@example.com>"]
 readme = "README.md"
 packages = [{include = "ml_lambda", from = "src"}]
 
+[tool.poetry.scripts]
+train = "scripts.train:main"
 [tool.poetry.dependencies]
 python = "^3.11"
 scikit-learn = "^1.4.0"
