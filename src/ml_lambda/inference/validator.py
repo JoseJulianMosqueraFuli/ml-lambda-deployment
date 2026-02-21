@@ -4,7 +4,7 @@ from typing import Any, List
 from ..utils.exceptions import InputValidationError
 from ..utils.logging import StructuredLogger
 
-logger = StructuredLogger()
+logger = StructuredLogger("validator")
 
 # Rangos típicos del dataset Iris (en cm)
 IRIS_RANGES = {
