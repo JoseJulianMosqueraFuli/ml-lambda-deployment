@@ -39,9 +39,10 @@ def handler_with_model(trained_model, tmp_path, monkeypatch):
     model_path = tmp_path / "model.joblib"
     serializer.save(trained_model, metadata, model_path)
     
-    # Monkeypatch config para usar modelo temporal
+    # Monkeypatch config para usar directorio temporal
     from ml_lambda import config
-    monkeypatch.setattr(config.config, "model_path", model_path)
+    monkeypatch.setattr(config.config, "artifacts_dir", tmp_path)
+    monkeypatch.setattr(config.config, "model_filename", "model.joblib")
     
     return LambdaHandler()
 
