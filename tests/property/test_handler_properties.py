@@ -7,7 +7,7 @@ Property 11: Errores Internos No Exponen Detalles
 
 import json
 import pytest
-from hypothesis import given, strategies as st, settings
+from hypothesis import given, strategies as st, settings, HealthCheck
 from unittest.mock import Mock
 
 from ml_lambda.inference.handler import LambdaHandler
@@ -44,7 +44,7 @@ def handler_with_model(trained_model, tmp_path, monkeypatch):
 
 
 # Property 5: Solicitudes Válidas Producen Respuestas Completas
-@settings(max_examples=100)
+@settings(max_examples=100, suppress_health_check=[HealthCheck.function_scoped_fixture])
 @given(
     features=st.lists(
         st.floats(min_value=0.0, max_value=10.0, allow_nan=False, allow_infinity=False),

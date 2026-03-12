@@ -146,7 +146,8 @@ class TestLambdaHandler:
         
         response = handler_with_model.handle(event, mock_context)
         
-        assert response["statusCode"] == 500
+        # InputValidationError retorna 400, no 500
+        assert response["statusCode"] == 400
         body = json.loads(response["body"])
         assert "errors" in body
     
@@ -194,7 +195,13 @@ class TestLambdaHandler:
     
     def test_error_response_no_internal_details(self, handler_with_model, mock_context, monkeypatch):
         """Test que errores internos no exponen detalles."""
-        # Forzar un error interno
+        # Primero cargar el modelo
+        event_init = {
+            "body": json.dumps({"features": [5.1, 3.5, 1.4, 0.2]})
+        }
+        handler_with_model.handle(event_init, mock_context)
+        
+        # Ahora forzar un error interno
         def mock_predict(*args, **kwargs):
             raise RuntimeError("Internal error with sensitive info")
         
