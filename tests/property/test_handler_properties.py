@@ -119,68 +119,119 @@ def test_property_valid_requests_produce_complete_responses(handler_with_model, 
 
 
 # Property 11: Errores Internos No Exponen Detalles
+#
+# Strategy: generate arbitrary error messages that could contain sensitive info
+# such as file paths, credentials, stack traces, or internal details.
+# The handler must never leak any of these in the HTTP response.
+
+_internal_error_messages = st.one_of(
+    # Arbitrary text that may contain anything
+    st.text(min_size=1, max_size=200),
+    # Messages resembling file paths
+    st.from_regex(r"/[a-z_]+/[a-z_]+\.py line \d+", fullmatch=True),
+    # Messages with credential-like content
+    st.tuples(
+        st.sampled_from(["password", "secret", "token", "api_key", "credential"]),
+        st.text(min_size=1, max_size=30),
+    ).map(lambda t: f"{t[0]}={t[1]}"),
+    # Messages resembling stack traces
+    st.just('Traceback (most recent call last):\n  File "handler.py", line 42\nKeyError: "model"'),
+    # Messages with internal class/module names
+    st.sampled_from([
+        "ModelSerializer.load() failed: corrupt header at byte 0x3F",
+        "NoneType has no attribute 'predict' in /src/ml_lambda/inference/predictor.py:28",
+        "Connection to db://internal-host:5432 refused, password=hunter2",
+        "sklearn.ensemble._forest.RandomForestClassifier raised ValueError",
+        "AWS_SECRET_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE",
+    ]),
+)
+
+_internal_exception_types = st.sampled_from([
+    RuntimeError,
+    ValueError,
+    TypeError,
+    KeyError,
+    AttributeError,
+    OSError,
+    MemoryError,
+])
+
+
 @settings(max_examples=100, suppress_health_check=[HealthCheck.function_scoped_fixture])
 @given(
-    error_message=st.text(min_size=10, max_size=100).filter(
-        lambda x: "sensitive" in x.lower() or "password" in x.lower() or "secret" in x.lower()
-    )
+    error_message=_internal_error_messages,
+    exception_type=_internal_exception_types,
+    features=st.lists(
+        st.floats(min_value=0.0, max_value=10.0, allow_nan=False, allow_infinity=False),
+        min_size=4,
+        max_size=4,
+    ),
 )
-def test_property_internal_errors_dont_expose_details(handler_with_model, error_message, monkeypatch):
+def test_property_internal_errors_dont_expose_details(
+    handler_with_model, error_message, exception_type, features, monkeypatch
+):
     """
-    Property 11: Para cualquier error interno con información sensible,
-    la respuesta debe:
+    Property 11: Para cualquier error interno (excepción no manejada),
+    la respuesta HTTP debe:
     - Tener statusCode 500
-    - NO contener el mensaje de error original
-    - NO contener stack traces
+    - NO contener stack trace en el body
+    - NO contener nombres de archivos internos
+    - NO contener el mensaje de error original (cuando es no trivial)
     - Contener solo mensaje genérico "Internal server error"
-    
+
     Validates: Requirements 12.2
     """
-    # Arrange - Forzar error interno con mensaje sensible
+    # Arrange – ensure model is loaded so _predictor exists, then force error
+    if handler_with_model._predictor is None:
+        handler_with_model._load_model_once()
+
     def mock_predict(*args, **kwargs):
-        raise RuntimeError(error_message)
-    
+        raise exception_type(error_message)
+
     monkeypatch.setattr(handler_with_model._predictor, "predict", mock_predict)
-    
-    event = {
-        "body": json.dumps({"features": [5.1, 3.5, 1.4, 0.2]})
-    }
+
+    event = {"body": json.dumps({"features": features})}
     context = Mock()
     context.aws_request_id = "test-request"
-    
+
     # Act
     response = handler_with_model.handle(event, context)
-    
-    # Assert - Código de error interno
+
+    # Assert – status code is 500
     assert response["statusCode"] == 500
-    
-    # Assert - Body parseado
+
+    # Assert – body is valid JSON
     body = json.loads(response["body"])
-    
-    # Assert - Contiene campo errors
+
+    # Assert – only the generic error message is present
     assert "errors" in body
     assert isinstance(body["errors"], list)
-    assert len(body["errors"]) > 0
-    
-    # Assert - Solo mensaje genérico
+    assert len(body["errors"]) == 1
     assert body["errors"] == ["Internal server error"]
-    
-    # Assert - No expone detalles internos
-    response_str = json.dumps(response).lower()
-    
-    # No debe contener el mensaje de error original
-    assert error_message.lower() not in response_str
-    
-    # No debe contener palabras sensibles del error
-    sensitive_words = ["sensitive", "password", "secret", "traceback", "exception"]
-    for word in sensitive_words:
-        if word in error_message.lower():
-            assert word not in response_str or word == "error"  # "error" es OK en "Internal server error"
-    
-    # No debe contener paths de archivos
-    assert ".py" not in response_str
-    assert "/src/" not in response_str
-    assert "\\src\\" not in response_str
+
+    # Assert – the raw response string does not leak internal details
+    response_body_str = response["body"]
+
+    # Must not contain the original error message (skip trivially short ones
+    # that could collide with the generic message words)
+    if len(error_message) > 5 and error_message.lower() not in "internal server error":
+        assert error_message not in response_body_str
+
+    # Must not contain stack-trace indicators
+    assert "Traceback" not in response_body_str
+    assert "File \"" not in response_body_str
+
+    # Must not contain Python file references
+    assert ".py" not in response_body_str
+
+    # Must not contain source path fragments
+    assert "/src/" not in response_body_str
+    assert "\\src\\" not in response_body_str
+    assert "ml_lambda" not in response_body_str
+
+    # Must not contain credential-like patterns
+    for keyword in ("password", "secret", "token", "api_key", "AWS_SECRET"):
+        assert keyword.lower() not in response_body_str.lower()
 
 
 # Property adicional: Validación de entrada rechaza inputs inválidos
