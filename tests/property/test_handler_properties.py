@@ -119,7 +119,7 @@ def test_property_valid_requests_produce_complete_responses(handler_with_model, 
 
 
 # Property 11: Errores Internos No Exponen Detalles
-@settings(max_examples=100)
+@settings(max_examples=100, suppress_health_check=[HealthCheck.function_scoped_fixture])
 @given(
     error_message=st.text(min_size=10, max_size=100).filter(
         lambda x: "sensitive" in x.lower() or "password" in x.lower() or "secret" in x.lower()
@@ -184,7 +184,7 @@ def test_property_internal_errors_dont_expose_details(handler_with_model, error_
 
 
 # Property adicional: Validación de entrada rechaza inputs inválidos
-@settings(max_examples=50)
+@settings(max_examples=50, suppress_health_check=[HealthCheck.function_scoped_fixture])
 @given(
     invalid_input=st.one_of(
         st.text(),  # String en lugar de lista
