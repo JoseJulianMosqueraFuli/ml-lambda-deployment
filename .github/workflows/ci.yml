@@ -1,0 +1,126 @@
+name: CI - Test & Lint
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Test & Lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Cache Poetry virtualenv
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Lint with ruff
+        run: poetry run ruff check src/ tests/
+
+      - name: Type check with mypy
+        run: poetry run mypy src/ --ignore-missing-imports
+
+      - name: Format check with black
+        run: poetry run black --check src/ tests/
+
+      - name: Run tests with coverage
+        run: |
+          poetry run pytest tests/ \
+            --cov=src/ml_lambda \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            --cov-fail-under=80 \
+            -v
+
+      - name: Upload coverage report
+        if: matrix.python-version == '3.12'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Security scan with bandit
+        run: |
+          pip install bandit
+          bandit -r src/ -ll
+
+  package:
+    name: Build Lambda Package
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Train model
+        run: poetry run train
+
+      - name: Build Lambda deployment package
+        run: |
+          mkdir -p build/lambda
+          poetry export -f requirements.txt --without-hashes -o build/lambda/requirements.txt
+          pip install -r build/lambda/requirements.txt -t build/lambda/
+          cp -r src/ml_lambda build/lambda/
+          cp artifacts/*.joblib build/lambda/ 2>/dev/null || echo "No model artifacts found"
+          cd build/lambda && zip -r ../../lambda-deployment.zip .
+
+      - name: Upload Lambda package
+        uses: actions/upload-artifact@v4
+        with:
+          name: lambda-deployment-package
+          path: lambda-deployment.zip
