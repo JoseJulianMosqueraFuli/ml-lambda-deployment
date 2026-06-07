@@ -1,0 +1,103 @@
+name: Deploy to AWS Lambda
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  AWS_REGION: us-east-1
+  LAMBDA_FUNCTION_NAME: ml-iris-predictor
+  S3_BUCKET: ml-lambda-deployment-artifacts
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Run tests before deploy
+        run: poetry run pytest tests/ -v --tb=short
+
+      - name: Train model
+        run: poetry run train
+
+      - name: Build Lambda package
+        run: |
+          mkdir -p build/lambda
+          poetry export -f requirements.txt --without-hashes -o build/lambda/requirements.txt
+          pip install -r build/lambda/requirements.txt -t build/lambda/
+          cp -r src/ml_lambda build/lambda/
+          cp artifacts/*.joblib build/lambda/
+          cd build/lambda && zip -r ../../lambda-deployment.zip .
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Upload package to S3
+        run: |
+          aws s3 cp lambda-deployment.zip \
+            s3://${{ env.S3_BUCKET }}/${{ inputs.environment }}/lambda-deployment-${{ github.sha }}.zip
+
+      - name: Deploy Lambda function
+        run: |
+          FUNCTION_NAME="${{ env.LAMBDA_FUNCTION_NAME }}-${{ inputs.environment }}"
+          aws lambda update-function-code \
+            --function-name "${FUNCTION_NAME}" \
+            --s3-bucket "${{ env.S3_BUCKET }}" \
+            --s3-key "${{ inputs.environment }}/lambda-deployment-${{ github.sha }}.zip" \
+            --publish
+
+      - name: Wait for function update
+        run: |
+          FUNCTION_NAME="${{ env.LAMBDA_FUNCTION_NAME }}-${{ inputs.environment }}"
+          aws lambda wait function-updated --function-name "${FUNCTION_NAME}"
+
+      - name: Smoke test
+        run: |
+          FUNCTION_NAME="${{ env.LAMBDA_FUNCTION_NAME }}-${{ inputs.environment }}"
+          RESPONSE=$(aws lambda invoke \
+            --function-name "${FUNCTION_NAME}" \
+            --payload '{"body": "{\"features\": [5.1, 3.5, 1.4, 0.2]}"}' \
+            --cli-binary-format raw-in-base64-out \
+            output.json)
+          
+          echo "Lambda Response:"
+          cat output.json | python -m json.tool
+          
+          # Verify successful response
+          STATUS=$(cat output.json | python -c "import sys,json; print(json.load(sys.stdin).get('statusCode', 500))")
+          if [ "$STATUS" != "200" ]; then
+            echo "ERROR: Lambda returned status $STATUS"
+            exit 1
+          fi
+          echo "Smoke test passed!"
