@@ -16,7 +16,7 @@ This project implements an end-to-end ML deployment workflow:
 - **Model Training**: Train a Random Forest classifier with cross-validation and comprehensive metrics
 - **Model Serialization**: Save trained models with metadata and integrity verification
 - **Input Validation**: Robust validation with type checking, range warnings, and sanitization
-- **Serverless Inference**: Deploy as an AWS Lambda function behind API Gateway (in progress)
+- **Serverless Inference**: Deploy as an AWS Lambda function behind API Gateway
 - **Structured Logging**: JSON-formatted logs for observability
 - **Property-Based Testing**: Comprehensive test coverage with Hypothesis
 
@@ -30,19 +30,22 @@ This project implements an end-to-end ML deployment workflow:
 - Model serialization with SHA256 integrity checks
 - API input validation (type checking, size limits, sanitization)
 - Structured JSON logging system
+- Lambda handler implementation (cold start optimization, error handling, CORS)
+- Inference predictor with probability output
+- CI/CD pipelines (GitHub Actions for test/lint and deployment)
+- Terraform infrastructure (Lambda, API Gateway, S3, IAM, CloudWatch)
 - Comprehensive test suite (unit + property tests with Hypothesis)
 
 **In Progress:**
 
-- Lambda handler implementation
-- AWS deployment automation
-- API Gateway configuration
+- AWS deployment automation (deploy/packager.py, deploy/deployer.py)
+- Integration tests for end-to-end flow
 
 **Pending:**
 
-- Integration tests for end-to-end flow
-- Deployment packaging and scripts
 - Production deployment guide
+- Monitoring dashboard setup
+- A/B testing support
 
 ## Architecture
 
@@ -154,9 +157,9 @@ ml-lambda-deployment/
 │   ├── model/              # Model serialization
 │   │   └── serializer.py   # ModelSerializer with integrity checks
 │   ├── inference/          # Lambda handler and validation
-│   │   ├── validator.py    # InputValidator (NEW)
+│   │   ├── validator.py    # InputValidator
 │   │   ├── predictor.py    # Predictor logic
-│   │   └── handler.py      # Lambda handler (in progress)
+│   │   └── handler.py      # Lambda handler
 │   ├── deploy/             # Packaging and AWS deployment
 │   │   ├── packager.py     # ZIP packaging
 │   │   └── deployer.py     # AWS deployment
