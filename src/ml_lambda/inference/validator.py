@@ -1,6 +1,8 @@
 """Validador de entrada para la API de inferencia."""
 
-from typing import Any, List
+import math
+from typing import Any
+
 from ..utils.exceptions import InputValidationError
 from ..utils.logging import StructuredLogger
 
@@ -21,7 +23,7 @@ class InputValidator:
     """Valida entrada de la API de inferencia."""
 
     @staticmethod
-    def validate_features(features: Any) -> List[float]:
+    def validate_features(features: Any) -> list[float]:
         """Valida y convierte features a lista de floats.
 
         Args:
@@ -41,19 +43,26 @@ class InputValidator:
 
         # Validar longitud
         if len(features) != 4:
-            raise InputValidationError(
-                f"Se esperan 4 features, recibidos: {len(features)}"
-            )
+            raise InputValidationError(f"Se esperan 4 features, recibidos: {len(features)}")
 
         # Validar y convertir tipos
         validated = []
         for i, value in enumerate(features):
+            if isinstance(value, bool) or not isinstance(value, int | float):
+                raise InputValidationError(
+                    f"Feature en posición {i} no es un número válido: {value}"
+                )
             try:
-                validated.append(float(value))
+                numeric_value = float(value)
             except (ValueError, TypeError) as e:
                 raise InputValidationError(
                     f"Feature en posición {i} no es un número válido: {value}"
                 ) from e
+            if not math.isfinite(numeric_value):
+                raise InputValidationError(
+                    f"Feature en posición {i} no es un número válido: {value}"
+                )
+            validated.append(numeric_value)
 
         # Validar rangos (warnings, no errores)
         InputValidator._check_ranges(validated)
@@ -61,7 +70,7 @@ class InputValidator:
         return validated
 
     @staticmethod
-    def _check_ranges(features: List[float]) -> None:
+    def _check_ranges(features: list[float]) -> None:
         """Verifica si features están en rangos típicos de Iris.
 
         Args:

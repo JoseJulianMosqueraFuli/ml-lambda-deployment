@@ -62,9 +62,7 @@ class DataProcessor:
         Returns:
             Tuple de (X_train, X_test, y_train, y_test)
         """
-        return train_test_split(
-            X, y, test_size=self.test_size, random_state=self.random_state
-        )
+        return train_test_split(X, y, test_size=self.test_size, random_state=self.random_state)
 
     def normalize(self, X: np.ndarray, fit: bool = False) -> np.ndarray:
         """Normaliza features usando StandardScaler.
@@ -99,9 +97,7 @@ class DataProcessor:
         class_distribution = {int(c): int(np.sum(y == c)) for c in unique_classes}
 
         # Rangos de features
-        feature_ranges = [
-            (float(X[:, i].min()), float(X[:, i].max())) for i in range(n_features)
-        ]
+        feature_ranges = [(float(X[:, i].min()), float(X[:, i].max())) for i in range(n_features)]
 
         return DatasetStats(
             n_samples=n_samples,

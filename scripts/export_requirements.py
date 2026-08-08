@@ -1,8 +1,9 @@
 """Script para exportar requirements.txt sin dependencias de desarrollo."""
 
-import subprocess
 import sys
 from pathlib import Path
+
+from ml_lambda.deploy.packager import get_production_requirements
 
 
 def main() -> int:
@@ -10,20 +11,14 @@ def main() -> int:
     output_path = Path("requirements.txt")
 
     try:
-        result = subprocess.run(
-            ["poetry", "export", "--without", "dev", "--format", "requirements.txt"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-
-        output_path.write_text(result.stdout)
+        requirements = get_production_requirements()
+        output_path.write_text(requirements)
         print(f"✓ Requirements exportados a {output_path}")
-        print(f"  Líneas: {len(result.stdout.splitlines())}")
+        print(f"  Líneas: {len(requirements.splitlines())}")
         return 0
 
-    except subprocess.CalledProcessError as e:
-        print(f"✗ Error exportando requirements: {e.stderr}", file=sys.stderr)
+    except RuntimeError as error:
+        print(f"✗ Error exportando requirements: {error}", file=sys.stderr)
         return 1
 
 
