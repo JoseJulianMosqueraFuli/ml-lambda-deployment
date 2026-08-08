@@ -1,13 +1,14 @@
 """Serialización y deserialización de modelos ML."""
 
 import hashlib
-import joblib
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from ml_lambda.utils.exceptions import (
+import joblib
+
+from ..utils.exceptions import (
     ModelCorruptedError,
     ModelNotFoundError,
 )
@@ -112,9 +113,7 @@ class ModelSerializer:
         path = Path(path)
 
         if not path.exists():
-            raise ModelNotFoundError(
-                f"Model file not found: {path}"
-            )
+            raise ModelNotFoundError(f"Model file not found: {path}")
 
         try:
             serialized_data = joblib.load(path)
@@ -122,18 +121,13 @@ class ModelSerializer:
             # Validar estructura del archivo
             if not isinstance(serialized_data, dict):
                 raise ModelCorruptedError(
-                    f"Invalid file format: expected dict, "
-                    f"got {type(serialized_data).__name__}"
+                    f"Invalid file format: expected dict, " f"got {type(serialized_data).__name__}"
                 )
 
             if "model" not in serialized_data:
-                raise ModelCorruptedError(
-                    "Corrupted file: missing 'model' field"
-                )
+                raise ModelCorruptedError("Corrupted file: missing 'model' field")
             if "metadata" not in serialized_data:
-                raise ModelCorruptedError(
-                    "Corrupted file: missing 'metadata' field"
-                )
+                raise ModelCorruptedError("Corrupted file: missing 'metadata' field")
 
             # Reconstruir metadatos
             metadata = ModelMetadata.from_dict(serialized_data["metadata"])
@@ -146,9 +140,7 @@ class ModelSerializer:
         except (ModelNotFoundError, ModelCorruptedError):
             raise
         except Exception as e:
-            raise ModelCorruptedError(
-                f"Error loading model: {e}"
-            ) from e
+            raise ModelCorruptedError(f"Error loading model: {e}") from e
 
     def validate_integrity(self, path: Path, expected_hash: str) -> bool:
         """Valida integridad del archivo comparando hash SHA256.
