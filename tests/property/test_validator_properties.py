@@ -1,8 +1,9 @@
 """Property tests para validación de entrada."""
 
-from hypothesis import given, strategies as st
 import pytest
-from ml_lambda.inference.validator import InputValidator, MAX_BODY_SIZE
+from hypothesis import given
+from hypothesis import strategies as st
+from ml_lambda.inference.validator import MAX_BODY_SIZE, InputValidator
 from ml_lambda.utils.exceptions import InputValidationError
 
 
@@ -49,7 +50,7 @@ class TestValidatorProperties:
     def test_property_invalid_types_rejected(self, features):
         """Property 6: Validación rechaza listas con tipos inválidos."""
         # Si todos son números, debe pasar
-        if all(isinstance(x, (int, float)) for x in features):
+        if all(isinstance(x, int | float) for x in features):
             result = InputValidator.validate_features(features)
             assert len(result) == 4
         else:

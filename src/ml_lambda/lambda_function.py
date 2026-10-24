@@ -12,11 +12,11 @@ _handler = LambdaHandler()
 
 def lambda_handler(event, context):
     """Entry point de AWS Lambda.
-    
+
     Args:
         event: Evento de API Gateway con el body de la solicitud
         context: Contexto de Lambda con información de la invocación
-        
+
     Returns:
         Respuesta HTTP con predicción o error
     """

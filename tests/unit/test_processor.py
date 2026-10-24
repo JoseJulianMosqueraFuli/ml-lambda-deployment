@@ -1,10 +1,7 @@
 """Tests unitarios para DataProcessor."""
 
 import numpy as np
-import pytest
-
 from ml_lambda.data.processor import DataProcessor, DatasetStats
-from ml_lambda.utils.exceptions import DataValidationError
 
 
 class TestDataProcessorLoadIris:

@@ -30,9 +30,7 @@ class EvaluationMetrics:
 class ModelEvaluator:
     """Evalúa modelos de clasificación."""
 
-    def evaluate(
-        self, model: Any, X_test: np.ndarray, y_test: np.ndarray
-    ) -> EvaluationMetrics:
+    def evaluate(self, model: Any, X_test: np.ndarray, y_test: np.ndarray) -> EvaluationMetrics:
         """Evalúa el modelo en datos de test.
 
         Args:
@@ -54,9 +52,7 @@ class ModelEvaluator:
             classification_report=classification_report(y_test, y_pred),
         )
 
-    def check_accuracy_threshold(
-        self, metrics: EvaluationMetrics, threshold: float = 0.9
-    ) -> bool:
+    def check_accuracy_threshold(self, metrics: EvaluationMetrics, threshold: float = 0.9) -> bool:
         """Verifica si accuracy supera umbral.
 
         Args:

@@ -54,23 +54,17 @@ class TestModelSerializer:
 
         assert model_path.exists()
 
-    def test_save_returns_hash(
-        self, trained_model, sample_metadata, tmp_path
-    ):
+    def test_save_returns_hash(self, trained_model, sample_metadata, tmp_path):
         """Verifica que save() retorna hash SHA256."""
         serializer = ModelSerializer()
         model_path = tmp_path / "model.joblib"
 
-        hash_value = serializer.save(
-            trained_model, sample_metadata, model_path
-        )
+        hash_value = serializer.save(trained_model, sample_metadata, model_path)
 
         assert isinstance(hash_value, str)
         assert len(hash_value) == 64  # SHA256 hex length
 
-    def test_load_returns_serialized_model(
-        self, trained_model, sample_metadata, tmp_path
-    ):
+    def test_load_returns_serialized_model(self, trained_model, sample_metadata, tmp_path):
         """Verifica que load() retorna SerializedModel."""
         serializer = ModelSerializer()
         model_path = tmp_path / "model.joblib"
@@ -80,9 +74,7 @@ class TestModelSerializer:
 
         assert isinstance(result, SerializedModel)
 
-    def test_load_preserves_model(
-        self, trained_model, sample_metadata, tmp_path
-    ):
+    def test_load_preserves_model(self, trained_model, sample_metadata, tmp_path):
         """Verifica que load() preserva el modelo."""
         serializer = ModelSerializer()
         model_path = tmp_path / "model.joblib"
@@ -95,9 +87,7 @@ class TestModelSerializer:
         predictions = result.model.predict(X[:5])
         assert len(predictions) == 5
 
-    def test_load_preserves_metadata(
-        self, trained_model, sample_metadata, tmp_path
-    ):
+    def test_load_preserves_metadata(self, trained_model, sample_metadata, tmp_path):
         """Verifica que load() preserva los metadatos."""
         serializer = ModelSerializer()
         model_path = tmp_path / "model.joblib"
@@ -135,9 +125,7 @@ class TestModelSerializer:
         """Verifica que validate_integrity() retorna True para hash válido."""
         serializer = ModelSerializer()
         model_path = tmp_path / "model.joblib"
-        expected_hash = serializer.save(
-            trained_model, sample_metadata, model_path
-        )
+        expected_hash = serializer.save(trained_model, sample_metadata, model_path)
 
         result = serializer.validate_integrity(model_path, expected_hash)
 
@@ -155,9 +143,7 @@ class TestModelSerializer:
 
         assert result is False
 
-    def test_validate_integrity_returns_false_for_missing_file(
-        self, tmp_path
-    ):
+    def test_validate_integrity_returns_false_for_missing_file(self, tmp_path):
         """Verifica validate_integrity() retorna False si archivo no existe."""
         serializer = ModelSerializer()
         model_path = tmp_path / "nonexistent.joblib"

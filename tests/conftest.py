@@ -1,9 +1,8 @@
 """Fixtures compartidos para pytest."""
 
 import pytest
-import numpy as np
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.datasets import load_iris
+from sklearn.ensemble import RandomForestClassifier
 
 
 @pytest.fixture
@@ -32,6 +31,7 @@ def sample_features():
 def valid_api_event(sample_features):
     """Evento válido de API Gateway."""
     import json
+
     return {
         "body": json.dumps({"features": sample_features}),
         "httpMethod": "POST",

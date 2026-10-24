@@ -4,7 +4,7 @@ version = "1.0.0"
 description = "ML model deployment to AWS Lambda with API Gateway - A learning project for Python ML and serverless deployment"
 authors = ["Developer <developer@example.com>"]
 readme = "README.md"
-packages = [{include = "ml_lambda", from = "src"}]
+packages = [{include = "ml_lambda", from = "src"}, {include = "scripts"}]
 
 [tool.poetry.scripts]
 train = "scripts.train:main"
@@ -36,7 +36,11 @@ target-version = ["py311"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+
+[tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]
+# X/X_train/X_test siguen la convención de scikit-learn para matrices de features.
+ignore = ["N803", "N806"]
 
 [tool.mypy]
 python_version = "3.11"

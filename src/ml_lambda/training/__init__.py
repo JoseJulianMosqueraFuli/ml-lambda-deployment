@@ -1,11 +1,11 @@
 """Módulo de entrenamiento de modelos."""
 
+from .evaluator import EvaluationMetrics, ModelEvaluator
 from .trainer import ModelTrainer, TrainingConfig, TrainingResult
-from .evaluator import ModelEvaluator, EvaluationMetrics
 
 __all__ = [
     "ModelTrainer",
-    "TrainingConfig", 
+    "TrainingConfig",
     "TrainingResult",
     "ModelEvaluator",
     "EvaluationMetrics",

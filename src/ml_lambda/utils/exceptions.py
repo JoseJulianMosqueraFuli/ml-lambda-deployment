@@ -39,7 +39,7 @@ class ModelNotFoundError(MLLambdaError):
 
 class ModelCorruptedError(MLLambdaError):
     """Archivo de modelo corrupto.
-    
+
     Se lanza cuando el archivo del modelo no puede ser deserializado
     o falla la validación de integridad.
     """
@@ -49,7 +49,7 @@ class ModelCorruptedError(MLLambdaError):
 
 class InputValidationError(MLLambdaError):
     """Error en validación de entrada de API.
-    
+
     Se lanza cuando la entrada de la API no cumple con el formato esperado:
     - Features no es una lista
     - Número incorrecto de features
@@ -61,7 +61,7 @@ class InputValidationError(MLLambdaError):
 
 class PackageTooLargeError(MLLambdaError):
     """Paquete excede límite de tamaño.
-    
+
     Se lanza cuando el paquete ZIP excede el límite de 50MB para Lambda.
     """
 
@@ -70,7 +70,7 @@ class PackageTooLargeError(MLLambdaError):
 
 class AWSCredentialsError(MLLambdaError):
     """Credenciales AWS inválidas o no configuradas.
-    
+
     Se lanza cuando no se pueden validar las credenciales de AWS.
     """
 

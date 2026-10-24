@@ -3,8 +3,8 @@
 **Validates: Requirements 4.2, 4.3**
 """
 
-import numpy as np
-from hypothesis import given, settings, strategies as st
+from hypothesis import given, settings
+from hypothesis import strategies as st
 from sklearn.datasets import make_classification
 
 from src.ml_lambda.training.evaluator import ModelEvaluator
@@ -31,9 +31,7 @@ class TestTrainingMetricsProperties:
         n_classes=st.integers(min_value=2, max_value=4),
         n_estimators=st.integers(min_value=5, max_value=15),
     )
-    def test_metrics_in_valid_range(
-        self, n_samples: int, n_classes: int, n_estimators: int
-    ):
+    def test_metrics_in_valid_range(self, n_samples: int, n_classes: int, n_estimators: int):
         """
         Property 3: Para cualquier modelo entrenado, las métricas deben estar
         en el rango [0, 1].

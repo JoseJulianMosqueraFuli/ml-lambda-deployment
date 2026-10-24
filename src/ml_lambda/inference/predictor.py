@@ -22,24 +22,22 @@ class Predictor:
 
     def predict(self, features: list[float]) -> PredictionResult:
         """Realiza predicción para un conjunto de features.
-        
+
         Args:
             features: Lista de 4 features numéricas
-            
+
         Returns:
             PredictionResult con predicción, nombre de clase y probabilidades
         """
         # Realizar predicción
         prediction = int(self._model.predict([features])[0])
-        
+
         # Obtener probabilidades
         probabilities = self._model.predict_proba([features])[0].tolist()
-        
+
         # Obtener nombre de clase
         class_name = self._class_names[prediction]
-        
+
         return PredictionResult(
-            prediction=prediction,
-            class_name=class_name,
-            probabilities=probabilities
+            prediction=prediction, class_name=class_name, probabilities=probabilities
         )

@@ -10,7 +10,8 @@ from datetime import datetime
 from pathlib import Path
 
 import numpy as np
-from hypothesis import given, settings, strategies as st
+from hypothesis import given, settings
+from hypothesis import strategies as st
 from sklearn.datasets import load_iris
 from sklearn.ensemble import RandomForestClassifier
 

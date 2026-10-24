@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
 
 
 @dataclass
@@ -13,9 +12,7 @@ class Config:
     version: str = "v1.0.0"
 
     # Paths
-    project_root: Path = field(
-        default_factory=lambda: Path(__file__).parent.parent.parent
-    )
+    project_root: Path = field(default_factory=lambda: Path(__file__).parent.parent.parent)
     artifacts_dir: Path = field(default_factory=lambda: Path("artifacts"))
     model_filename: str = "model.joblib"
     metadata_filename: str = "model_metadata.json"
@@ -26,7 +23,7 @@ class Config:
 
     # Training
     n_estimators: int = 100
-    max_depth: Optional[int] = None
+    max_depth: int | None = None
     min_samples_split: int = 2
     n_cv_folds: int = 5
     accuracy_threshold: float = 0.9
@@ -54,9 +51,7 @@ class Config:
     )
 
     # Class names (Iris dataset)
-    class_names: list[str] = field(
-        default_factory=lambda: ["setosa", "versicolor", "virginica"]
-    )
+    class_names: list[str] = field(default_factory=lambda: ["setosa", "versicolor", "virginica"])
 
     @property
     def model_path(self) -> Path:

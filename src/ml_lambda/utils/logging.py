@@ -2,7 +2,7 @@
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -23,7 +23,7 @@ class StructuredLogger:
     def _format_message(self, level: str, message: str, **kwargs: Any) -> str:
         """Formatea mensaje como JSON."""
         log_entry = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "level": level,
             "logger": self.name,
             "message": message,

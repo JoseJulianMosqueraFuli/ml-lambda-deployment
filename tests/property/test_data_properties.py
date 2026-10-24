@@ -4,10 +4,9 @@ Feature: ml-lambda-deployment, Property 1: Divisi√≥n de Datos Mantiene Proporci√
 """
 
 import numpy as np
-from hypothesis import given, settings, strategies as st
-
+from hypothesis import given, settings
+from hypothesis import strategies as st
 from ml_lambda.data.processor import DataProcessor
-
 
 # Strategy for test_size (proportion for test set)
 test_size_strategy = st.floats(min_value=0.1, max_value=0.5)
@@ -88,7 +87,6 @@ class TestDataSplitProperties:
         np.testing.assert_array_equal(X_test1, X_test2)
         np.testing.assert_array_equal(y_train1, y_train2)
         np.testing.assert_array_equal(y_test1, y_test2)
-
 
 
 class TestNormalizationProperties:

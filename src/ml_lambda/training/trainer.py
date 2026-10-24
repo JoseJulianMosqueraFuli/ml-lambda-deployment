@@ -2,7 +2,6 @@
 
 import time
 from dataclasses import dataclass
-from typing import Optional
 
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
@@ -14,7 +13,7 @@ class TrainingConfig:
     """Configuración de entrenamiento."""
 
     n_estimators: int = 100
-    max_depth: Optional[int] = None
+    max_depth: int | None = None
     min_samples_split: int = 2
     random_state: int = 42
     n_cv_folds: int = 5
@@ -36,7 +35,7 @@ class ModelTrainer:
 
     def __init__(self, config: TrainingConfig):
         self.config = config
-        self._model: Optional[RandomForestClassifier] = None
+        self._model: RandomForestClassifier | None = None
 
     def train(self, X_train: np.ndarray, y_train: np.ndarray) -> TrainingResult:
         """Entrena el modelo con validación cruzada.
@@ -59,9 +58,7 @@ class ModelTrainer:
         )
 
         # Validación cruzada
-        cv_scores = cross_val_score(
-            self._model, X_train, y_train, cv=self.config.n_cv_folds
-        )
+        cv_scores = cross_val_score(self._model, X_train, y_train, cv=self.config.n_cv_folds)
 
         # Entrenar modelo final con todos los datos
         self._model.fit(X_train, y_train)

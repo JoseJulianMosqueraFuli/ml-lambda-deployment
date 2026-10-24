@@ -1,7 +1,6 @@
 """Procesamiento y preparación de datos."""
 
 from dataclasses import dataclass
-from typing import Tuple
 
 import numpy as np
 from sklearn.datasets import load_iris as sklearn_load_iris
@@ -19,7 +18,7 @@ class DatasetStats:
     n_features: int
     n_classes: int
     class_distribution: dict[int, int]
-    feature_ranges: list[Tuple[float, float]]
+    feature_ranges: list[tuple[float, float]]
 
 
 class DataProcessor:
@@ -28,9 +27,9 @@ class DataProcessor:
     def __init__(self, test_size: float = 0.2, random_state: int = 42):
         self.test_size = test_size
         self.random_state = random_state
-        self._scaler = None
+        self._scaler: StandardScaler | None = None
 
-    def load_iris(self) -> Tuple[np.ndarray, np.ndarray]:
+    def load_iris(self) -> tuple[np.ndarray, np.ndarray]:
         """Carga el dataset Iris.
 
         Returns:
@@ -52,7 +51,7 @@ class DataProcessor:
 
     def split_data(
         self, X: np.ndarray, y: np.ndarray
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """Divide datos en train/test.
 
         Args:
@@ -62,7 +61,10 @@ class DataProcessor:
         Returns:
             Tuple de (X_train, X_test, y_train, y_test)
         """
-        return train_test_split(X, y, test_size=self.test_size, random_state=self.random_state)
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=self.test_size, random_state=self.random_state
+        )
+        return X_train, X_test, y_train, y_test
 
     def normalize(self, X: np.ndarray, fit: bool = False) -> np.ndarray:
         """Normaliza features usando StandardScaler.
@@ -76,8 +78,8 @@ class DataProcessor:
         """
         if fit or self._scaler is None:
             self._scaler = StandardScaler()
-            return self._scaler.fit_transform(X)
-        return self._scaler.transform(X)
+            return np.asarray(self._scaler.fit_transform(X))
+        return np.asarray(self._scaler.transform(X))
 
     def compute_stats(self, X: np.ndarray, y: np.ndarray) -> DatasetStats:
         """Calcula estadísticas del dataset.

@@ -1,7 +1,7 @@
 """Tests unitarios para el validador de entrada."""
 
 import pytest
-from ml_lambda.inference.validator import InputValidator, MAX_BODY_SIZE
+from ml_lambda.inference.validator import MAX_BODY_SIZE, InputValidator
 from ml_lambda.utils.exceptions import InputValidationError
 
 
