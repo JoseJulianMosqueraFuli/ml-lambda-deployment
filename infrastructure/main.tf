@@ -126,7 +126,7 @@ resource "aws_lambda_function" "predictor" {
   }
 
   lifecycle {
-    ignore_changes = [image_uri, last_modified]
+    ignore_changes = [image_uri]
   }
 }
 
