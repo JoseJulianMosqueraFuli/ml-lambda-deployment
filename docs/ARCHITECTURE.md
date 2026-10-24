@@ -134,13 +134,9 @@ src/ml_lambda/
 │                          #    - ModelNotFoundError, etc.
 │
 └── deploy/
-    ├── packager.py        #  PackageBuilder
-    │                      #    - Crea ZIP para Lambda
-    │                      #    - Excluye archivos innecesarios
-    │
-    └── deployer.py        #  AWSDeployer
-                           #    - Despliega a Lambda
-                           #    - Configura API Gateway
+    └── packager.py        #  PackageBuilder
+                           #    - Crea ZIP para Lambda
+                           #    - Excluye archivos innecesarios
 ```
 
 ---
