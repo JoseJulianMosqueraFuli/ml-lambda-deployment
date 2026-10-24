@@ -46,26 +46,20 @@ This project implements an end-to-end ML deployment workflow:
 
 ## Architecture
 
+```mermaid
+flowchart TB
+    subgraph local["Local pipeline"]
+        direction LR
+        dataset["Iris dataset"] --> process["Process & split"] --> train["Train model"] --> serialize["Serialize model"]
+    end
+    subgraph aws["AWS deployment"]
+        direction LR
+        client["HTTP client"] --> apigw["API Gateway"] --> handler["Lambda handler"] --> predict["Model predict"]
+    end
+    local --> aws
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         LOCAL PIPELINE                          │
-│                                                                 │
-│   ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐  │
-│   │  Dataset │───▶│ Process  │───▶│  Train   │───▶│ Serialize│  │
-│   │   Iris   │    │  & Split │    │  Model   │    │  Model   │  │
-│   └──────────┘    └──────────┘    └──────────┘    └──────────┘  │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                         AWS DEPLOYMENT                          │
-│                                                                 │
-│   ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐  │
-│   │  Client  │───▶│   API    │───▶│  Lambda  │───▶│  Model   │  │
-│   │   HTTP   │    │ Gateway  │    │ Handler  │    │ Predict  │  │
-│   └──────────┘    └──────────┘    └──────────┘    └──────────┘  │
-└─────────────────────────────────────────────────────────────────┘
-```
+
+The detailed AWS architecture and the AWS flow (deployment and inference) are available in [docs/diagrams/architecture.drawio](docs/diagrams/architecture.drawio) (open it with [draw.io](https://app.diagrams.net/)). See also [AWS flow](docs/ARCHITECTURE.md#flujo-de-aws).
 
 ## Requirements
 

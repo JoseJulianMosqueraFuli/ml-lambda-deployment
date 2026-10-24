@@ -20,26 +20,20 @@ Este proyecto implementa un flujo de despliegue ML de extremo a extremo:
 
 ## Arquitectura
 
+```mermaid
+flowchart TB
+    subgraph local["Pipeline local"]
+        direction LR
+        dataset["Dataset Iris"] --> procesar["Procesar y dividir"] --> entrenar["Entrenar modelo"] --> serializar["Serializar modelo"]
+    end
+    subgraph aws["Despliegue AWS"]
+        direction LR
+        cliente["Cliente HTTP"] --> apigw["API Gateway"] --> handler["Lambda Handler"] --> predecir["Modelo: predecir"]
+    end
+    local --> aws
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                       PIPELINE LOCAL                             │
-│                                                                  │
-│   ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐  │
-│   │  Dataset │───▶│ Procesar │───▶│ Entrenar │───▶│Serializar│  │
-│   │   Iris   │    │ y Dividir│    │  Modelo  │    │  Modelo  │  │
-│   └──────────┘    └──────────┘    └──────────┘    └──────────┘  │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                       DESPLIEGUE AWS                             │
-│                                                                  │
-│   ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐  │
-│   │ Cliente  │───▶│   API    │───▶│  Lambda  │───▶│  Modelo  │  │
-│   │   HTTP   │    │ Gateway  │    │ Handler  │    │ Predecir │  │
-│   └──────────┘    └──────────┘    └──────────┘    └──────────┘  │
-└─────────────────────────────────────────────────────────────────┘
-```
+
+La arquitectura detallada en AWS y el flujo de AWS (despliegue e inferencia) están en [docs/diagrams/architecture.drawio](docs/diagrams/architecture.drawio) (ábrelo con [draw.io](https://app.diagrams.net/)). Consulta también el [flujo de AWS](docs/ARCHITECTURE.md#flujo-de-aws).
 
 ## Requisitos
 

@@ -6,22 +6,23 @@ This project deploys a trained ML model (Iris classifier) to AWS Lambda with API
 
 ## Architecture
 
+```mermaid
+flowchart TB
+    subgraph ci["CI - Test & Lint (automatic on push / PR)"]
+        direction LR
+        push["GitHub push / PR"] --> checks["Test + lint<br/>ruff · mypy · black · pytest · bandit"]
+        checks --> artifact["Build Lambda ZIP<br/>(workflow artifact)"]
+    end
+    subgraph deploy["Deploy to AWS Lambda (manual trigger)"]
+        direction LR
+        manual["workflow_dispatch<br/>staging | production"] --> build["Test + train + build ZIP"]
+        build --> s3["S3 upload"]
+        s3 --> update["Lambda update + publish"]
+        update --> smoke["Smoke test verification"]
+    end
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│                      DEPLOYMENT PIPELINE                          │
-│                                                                   │
-│  [GitHub Push] ──► [CI: Test + Lint] ──► [Build Lambda ZIP]      │
-│                                                │                  │
-│                                                ▼                  │
-│  [Manual Trigger] ──► [Deploy Workflow] ──► [S3 Upload]           │
-│                                                │                  │
-│                                                ▼                  │
-│                                    [Lambda Update + Publish]      │
-│                                                │                  │
-│                                                ▼                  │
-│                                    [Smoke Test Verification]      │
-└──────────────────────────────────────────────────────────────────┘
-```
+
+The deploy workflow builds its own ZIP; it does not reuse the CI artifact. For the full AWS architecture and the deployment/inference flow, see [diagrams/architecture.drawio](diagrams/architecture.drawio) and [AWS flow](ARCHITECTURE.md#flujo-de-aws).
 
 ## Prerequisites
 

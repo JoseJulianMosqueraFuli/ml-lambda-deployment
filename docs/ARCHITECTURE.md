@@ -10,6 +10,7 @@ Esta guía explica cómo funciona el proyecto, los conceptos clave y el flujo de
 4. [Conceptos Clave](#conceptos-clave)
 5. [Flujo de Datos Detallado](#flujo-de-datos-detallado)
 6. [AWS Lambda y Serverless](#aws-lambda-y-serverless)
+7. [Flujo de AWS](#flujo-de-aws)
 
 ---
 
@@ -32,53 +33,22 @@ Este proyecto tiene **dos fases** claramente separadas:
 
 ## Flujo del Proyecto
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         FASE LOCAL (Tu Máquina)                         │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│   1. DATOS           2. ENTRENAMIENTO      3. SERIALIZACIÓN             │
-│   ┌─────────┐        ┌─────────────┐       ┌─────────────┐              │
-│   │  Iris   │───────▶│   Random    │──────▶│   Guardar   │              │
-│   │ Dataset │        │   Forest    │       │   .joblib   │              │
-│   └─────────┘        └─────────────┘       └──────┬──────┘              │
-│        │                    │                     │                     │
-│        ▼                    ▼                     ▼                     │
-│   DataProcessor       ModelTrainer          ModelSerializer             │
-│                                                   │                     │
-│                                                   │                     │
-│   4. EMPAQUETADO                                  │                     │
-│   ┌─────────────────────────────────────────────┐ │                     │
-│   │  código + dependencias + modelo.joblib      │ │                     │
-│   │                    ▼                        │ │                     │
-│   │            lambda_deployment.zip            │◀│                     │
-│   └─────────────────────────────────────────────┘                       │
-│                         │                                               │
-└─────────────────────────┼───────────────────────────────────────────────┘
-                          │
-                          ▼ (upload)
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         FASE CLOUD (AWS)                                │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│   ┌──────────┐      ┌──────────────┐      ┌─────────────┐               │
-│   │ Cliente  │─────▶│ API Gateway  │─────▶│   Lambda    │               │
-│   │  HTTP    │      │ POST /predict│      │   Handler   │               │
-│   └──────────┘      └──────────────┘      └──────┬──────┘               │
-│                                                   │                     │
-│                                                   ▼                     │
-│                                           ┌─────────────┐               │
-│                                           │   Modelo    │               │
-│                                           │  (cargado)  │               │
-│                                           └──────┬──────┘               │
-│                                                  │                      │
-│                                                  ▼                      │
-│                                           ┌─────────────┐               │
-│                                           │ Predicción  │               │
-│                                           │  + Probs    │               │
-│                                           └─────────────┘               │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph local["Fase local (tu máquina)"]
+        direction TB
+        datos["1. Datos<br/>Iris Dataset<br/><i>DataProcessor</i>"] --> entrenamiento["2. Entrenamiento<br/>Random Forest<br/><i>ModelTrainer</i>"]
+        entrenamiento --> serializacion["3. Serialización<br/>Guardar .joblib<br/><i>ModelSerializer</i>"]
+        serializacion --> empaquetado["4. Empaquetado<br/>código + dependencias + model.joblib<br/>→ lambda_deployment.zip"]
+    end
+    subgraph cloud["Fase cloud (AWS)"]
+        direction TB
+        cliente["Cliente HTTP"] --> apigw["API Gateway<br/>POST /predict"]
+        apigw --> handler["Lambda Handler"]
+        handler --> modelo["Modelo (cargado)"]
+        modelo --> prediccion["Predicción + probabilidades"]
+    end
+    empaquetado -- "upload" --> handler
 ```
 
 ---
@@ -164,26 +134,13 @@ El dataset Iris es un clásico en ML. Contiene 150 muestras de flores con:
 
 Es un "ensemble" de árboles de decisión:
 
-```
-                    ┌─────────────┐
-                    │   Input     │
-                    │ [5.1, 3.5,  │
-                    │  1.4, 0.2]  │
-                    └──────┬──────┘
-                           │
-           ┌───────────────┼───────────────┐
-           ▼               ▼               ▼
-      ┌─────────┐    ┌─────────┐    ┌─────────┐
-      │ Árbol 1 │    │ Árbol 2 │    │ Árbol N │
-      │ pred: 0 │    │ pred: 0 │    │ pred: 1 │
-      └────┬────┘    └────┬────┘    └────┬────┘
-           │              │              │
-           └──────────────┼──────────────┘
-                          ▼
-                    ┌───────────┐
-                    │  Votación │
-                    │  pred: 0  │  (mayoría)
-                    └───────────┘
+```mermaid
+flowchart TB
+    entrada["Input<br/>[5.1, 3.5, 1.4, 0.2]"]
+    entrada --> a1["Árbol 1<br/>pred: 0"]
+    entrada --> a2["Árbol 2<br/>pred: 0"]
+    entrada --> an["Árbol N<br/>pred: 1"]
+    a1 & a2 & an --> votacion["Votación (mayoría)<br/>pred: 0"]
 ```
 
 **¿Por qué Random Forest?**
@@ -232,20 +189,16 @@ def lambda_handler(event, context):
 
 ### 5. API Gateway + Lambda
 
-```
-Cliente                API Gateway              Lambda
-   │                       │                      │
-   │  POST /predict        │                      │
-   │  {features: [...]}    │                      │
-   │──────────────────────▶│                      │
-   │                       │   Invoke             │
-   │                       │─────────────────────▶│
-   │                       │                      │ procesa
-   │                       │   Response           │
-   │                       │◀─────────────────────│
-   │  200 OK               │                      │
-   │  {prediction: 0}      │                      │
-   │◀──────────────────────│                      │
+```mermaid
+sequenceDiagram
+    participant C as Cliente
+    participant G as API Gateway
+    participant L as Lambda
+    C->>G: POST /predict {features: [...]}
+    G->>L: Invoke
+    Note over L: procesa
+    L-->>G: Response
+    G-->>C: 200 OK {prediction: 0}
 ```
 
 **API Gateway maneja:**
@@ -369,6 +322,69 @@ Docker es mejor cuando:
 - Modelo grande (>50 MB)
 - Dependencias complejas
 - Necesitas sistema operativo específico
+
+---
+
+## Flujo de AWS
+
+Recursos provisionados por [`infrastructure/main.tf`](../infrastructure/main.tf): Lambda (`python3.12`, 512 MB, 30 s), API Gateway HTTP API (`POST /predict`, `GET /health`), bucket S3 versionado para los paquetes, rol IAM de ejecución, grupos de logs y alarmas de CloudWatch.
+
+La versión editable de la arquitectura y de este flujo, con iconos de AWS, está en [`diagrams/architecture.drawio`](diagrams/architecture.drawio) (páginas «Arquitectura» y «Flujo AWS»).
+
+### Despliegue
+
+Flujo del workflow manual [`deploy.yml`](../.github/workflows/deploy.yml):
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Dev as Desarrollador
+    participant GH as GitHub Actions
+    participant S3 as Amazon S3
+    participant L as AWS Lambda
+    Dev->>GH: Run workflow (staging | production)
+    GH->>GH: pytest + poetry run train
+    GH->>GH: Construir lambda-deployment.zip
+    GH->>S3: aws s3 cp {env}/lambda-deployment-{sha}.zip
+    GH->>L: update-function-code --s3-key ... --publish
+    L->>S3: Obtiene el paquete
+    GH->>L: aws lambda wait function-updated
+    GH->>L: Smoke test: aws lambda invoke
+    L-->>GH: statusCode
+    alt statusCode == 200
+        GH-->>Dev: Despliegue verificado
+    else otro código
+        GH-->>Dev: El job falla (exit 1)
+    end
+```
+
+### Inferencia
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Cliente HTTP
+    participant G as API Gateway (HTTP API)
+    participant L as Lambda (LambdaHandler)
+    participant CW as CloudWatch Logs
+    C->>G: POST /predict {"features": [5.1, 3.5, 1.4, 0.2]}
+    G->>L: Invoke (AWS_PROXY)
+    opt Cold start
+        L->>L: ModelSerializer.load(model.joblib)
+    end
+    L->>L: Parsear body + InputValidator
+    alt Entrada válida
+        L->>L: Predictor.predict
+        L->>CW: inference_complete (JSON)
+        L-->>G: 200 {prediction, class_name, probabilities, latency_ms}
+    else Entrada inválida o error
+        L->>CW: inference_error (JSON)
+        L-->>G: 400 / 500 {errors}
+    end
+    G-->>C: Respuesta HTTP
+    G->>CW: Access log
+    Note over CW: Alarmas: Errors > 5 (2 periodos de 60 s)<br/>Duration media > 10 s (3 periodos de 60 s)
+```
 
 ---
 
