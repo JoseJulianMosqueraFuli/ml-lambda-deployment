@@ -1,6 +1,5 @@
-"""Módulo de empaquetado y despliegue."""
+"""Herramientas para empaquetar la aplicación para AWS Lambda."""
 
 from .packager import PackageBuilder, PackageInfo
-from .deployer import AWSDeployer, DeploymentResult
 
-__all__ = ["PackageBuilder", "PackageInfo", "AWSDeployer", "DeploymentResult"]
+__all__ = ["PackageBuilder", "PackageInfo"]

@@ -157,9 +157,8 @@ ml-lambda-deployment/
 │   │   ├── validator.py    # InputValidator (NEW)
 │   │   ├── predictor.py    # Predictor logic
 │   │   └── handler.py      # Lambda handler (in progress)
-│   ├── deploy/             # Packaging and AWS deployment
+│   ├── deploy/             # Lambda packaging
 │   │   ├── packager.py     # ZIP packaging
-│   │   └── deployer.py     # AWS deployment
 │   └── utils/              # Logging and custom exceptions
 │       ├── logging.py      # StructuredLogger
 │       └── exceptions.py   # Custom exceptions
