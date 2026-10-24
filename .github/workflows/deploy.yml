@@ -15,7 +15,6 @@ on:
 env:
   AWS_REGION: us-east-1
   LAMBDA_FUNCTION_NAME: ml-iris-predictor
-  S3_BUCKET: ml-lambda-deployment-artifacts
 
 permissions:
   contents: read
@@ -47,15 +46,6 @@ jobs:
       - name: Train model
         run: poetry run train
 
-      - name: Build Lambda package
-        run: |
-          mkdir -p build/lambda
-          poetry export -f requirements.txt --without-hashes -o build/lambda/requirements.txt
-          pip install -r build/lambda/requirements.txt -t build/lambda/
-          cp -r src/ml_lambda build/lambda/
-          cp artifacts/*.joblib build/lambda/
-          cd build/lambda && zip -r ../../lambda-deployment.zip .
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -63,18 +53,30 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Upload package to S3
+      - name: Log in to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push container image
+        id: image
         run: |
-          aws s3 cp lambda-deployment.zip \
-            s3://${{ env.S3_BUCKET }}/${{ inputs.environment }}/lambda-deployment-${{ github.sha }}.zip
+          # Terraform creates one repository per environment: <function>-<environment>.
+          IMAGE_URI="${{ steps.ecr.outputs.registry }}/${{ env.LAMBDA_FUNCTION_NAME }}-${{ inputs.environment }}:${{ github.sha }}"
+          docker build \
+            --platform linux/amd64 \
+            --provenance=false \
+            --file docker/Dockerfile \
+            --tag "${IMAGE_URI}" \
+            .
+          docker push "${IMAGE_URI}"
+          echo "uri=${IMAGE_URI}" >> "$GITHUB_OUTPUT"
 
       - name: Deploy Lambda function
         run: |
           FUNCTION_NAME="${{ env.LAMBDA_FUNCTION_NAME }}-${{ inputs.environment }}"
           aws lambda update-function-code \
             --function-name "${FUNCTION_NAME}" \
-            --s3-bucket "${{ env.S3_BUCKET }}" \
-            --s3-key "${{ inputs.environment }}/lambda-deployment-${{ github.sha }}.zip" \
+            --image-uri "${{ steps.image.outputs.uri }}" \
             --publish
 
       - name: Wait for function update
@@ -85,17 +87,17 @@ jobs:
       - name: Smoke test
         run: |
           FUNCTION_NAME="${{ env.LAMBDA_FUNCTION_NAME }}-${{ inputs.environment }}"
-          RESPONSE=$(aws lambda invoke \
+          aws lambda invoke \
             --function-name "${FUNCTION_NAME}" \
             --payload '{"body": "{\"features\": [5.1, 3.5, 1.4, 0.2]}"}' \
             --cli-binary-format raw-in-base64-out \
-            output.json)
-          
+            output.json
+
           echo "Lambda Response:"
-          cat output.json | python -m json.tool
-          
+          python -m json.tool output.json
+
           # Verify successful response
-          STATUS=$(cat output.json | python -c "import sys,json; print(json.load(sys.stdin).get('statusCode', 500))")
+          STATUS=$(python -c "import json; print(json.load(open('output.json')).get('statusCode', 500))")
           if [ "$STATUS" != "200" ]; then
             echo "ERROR: Lambda returned status $STATUS"
             exit 1
