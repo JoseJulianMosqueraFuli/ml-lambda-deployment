@@ -1,5 +1,5 @@
 # ML Lambda Deployment - Terraform Infrastructure
-# Provisions: Lambda Function, API Gateway, S3, IAM roles
+# Provisions: ECR repository, Lambda Function (container image), API Gateway, IAM roles
 
 terraform {
   required_version = ">= 1.5.0"
@@ -47,16 +47,42 @@ variable "lambda_function_name" {
   description = "Name of the Lambda function"
 }
 
-# S3 Bucket for Lambda deployment packages
-resource "aws_s3_bucket" "lambda_artifacts" {
-  bucket = "ml-lambda-deployment-artifacts-${data.aws_caller_identity.current.account_id}"
+variable "image_tag" {
+  default     = "latest"
+  description = "Initial container image tag; later deployments update the image from GitHub Actions"
 }
 
-resource "aws_s3_bucket_versioning" "lambda_artifacts" {
-  bucket = aws_s3_bucket.lambda_artifacts.id
-  versioning_configuration {
-    status = "Enabled"
+# ECR repository for the Lambda container image.
+# The image (~240 MB of scikit-learn/scipy/numpy) does not fit comfortably in the
+# 250 MB unzipped limit of ZIP packages; container images allow up to 10 GB.
+resource "aws_ecr_repository" "predictor" {
+  name                 = "${var.lambda_function_name}-${var.environment}"
+  image_tag_mutability = "IMMUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
   }
+}
+
+resource "aws_ecr_lifecycle_policy" "predictor" {
+  repository = aws_ecr_repository.predictor.name
+
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep the 10 most recent images"
+        selection = {
+          tagStatus   = "any"
+          countType   = "imageCountMoreThan"
+          countNumber = 10
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
 }
 
 # IAM Role for Lambda
@@ -82,33 +108,15 @@ resource "aws_iam_role_policy_attachment" "lambda_basic" {
   role       = aws_iam_role.lambda_role.name
 }
 
-resource "aws_iam_role_policy" "lambda_s3_read" {
-  name = "s3-read-access"
-  role = aws_iam_role.lambda_role.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action   = ["s3:GetObject"]
-        Effect   = "Allow"
-        Resource = "${aws_s3_bucket.lambda_artifacts.arn}/*"
-      }
-    ]
-  })
-}
-
 # Lambda Function
 resource "aws_lambda_function" "predictor" {
   function_name = "${var.lambda_function_name}-${var.environment}"
   role          = aws_iam_role.lambda_role.arn
-  handler       = "ml_lambda.lambda_function.lambda_handler"
-  runtime       = "python3.12"
+  package_type  = "Image"
+  image_uri     = "${aws_ecr_repository.predictor.repository_url}:${var.image_tag}"
+  architectures = ["x86_64"]
   timeout       = 30
   memory_size   = 512
-
-  s3_bucket = aws_s3_bucket.lambda_artifacts.id
-  s3_key    = "${var.environment}/lambda-deployment-latest.zip"
 
   environment {
     variables = {
@@ -118,7 +126,7 @@ resource "aws_lambda_function" "predictor" {
   }
 
   lifecycle {
-    ignore_changes = [s3_key, last_modified]
+    ignore_changes = [image_uri, last_modified]
   }
 }
 
@@ -226,9 +234,6 @@ resource "aws_cloudwatch_metric_alarm" "lambda_duration" {
   }
 }
 
-# Data source
-data "aws_caller_identity" "current" {}
-
 # Outputs
 output "api_endpoint" {
   value       = aws_apigatewayv2_api.predictor_api.api_endpoint
@@ -245,7 +250,7 @@ output "lambda_function_name" {
   description = "Lambda function name"
 }
 
-output "s3_bucket" {
-  value       = aws_s3_bucket.lambda_artifacts.id
-  description = "S3 bucket for deployment artifacts"
+output "ecr_repository_url" {
+  value       = aws_ecr_repository.predictor.repository_url
+  description = "ECR repository for the Lambda container image"
 }
