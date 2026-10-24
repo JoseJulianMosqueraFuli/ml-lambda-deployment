@@ -48,8 +48,8 @@ This project implements an end-to-end ML deployment workflow:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                         LOCAL PIPELINE                           │
-│                                                                  │
+│                         LOCAL PIPELINE                          │
+│                                                                 │
 │   ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐  │
 │   │  Dataset │───▶│ Process  │───▶│  Train   │───▶│ Serialize│  │
 │   │   Iris   │    │  & Split │    │  Model   │    │  Model   │  │
@@ -58,8 +58,8 @@ This project implements an end-to-end ML deployment workflow:
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                         AWS DEPLOYMENT                           │
-│                                                                  │
+│                         AWS DEPLOYMENT                          │
+│                                                                 │
 │   ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐  │
 │   │  Client  │───▶│   API    │───▶│  Lambda  │───▶│  Model   │  │
 │   │   HTTP   │    │ Gateway  │    │ Handler  │    │ Predict  │  │
