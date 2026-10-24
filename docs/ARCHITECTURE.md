@@ -329,7 +329,7 @@ Docker es mejor cuando:
 
 Recursos provisionados por [`infrastructure/main.tf`](../infrastructure/main.tf): Lambda (`python3.12`, 512 MB, 30 s), API Gateway HTTP API (`POST /predict`, `GET /health`), bucket S3 versionado para los paquetes, rol IAM de ejecución, grupos de logs y alarmas de CloudWatch.
 
-La versión editable de la arquitectura y de este flujo, con iconos de AWS, está en [`diagrams/architecture.drawio`](diagrams/architecture.drawio) (páginas «Arquitectura» y «Flujo AWS»).
+La versión editable, con iconos de AWS, está en [`diagrams/architecture.drawio`](diagrams/architecture.drawio), con tres páginas: «Arquitectura AWS» (propuesta con VPC, subredes privadas en dos AZ, security group y S3 Gateway endpoint), «Flujo de inferencia» y «Flujo de despliegue». La VPC todavía no está provisionada en Terraform: hoy la función se ejecuta fuera de una VPC.
 
 ### Despliegue
 
