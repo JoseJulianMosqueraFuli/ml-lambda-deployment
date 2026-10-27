@@ -3,9 +3,11 @@
 ## Flujo de Desarrollo
 
 1. Crear branch desde `main`
-2. Implementar cambios siguiendo el spec
+2. Tomar un ítem de [docs/BACKLOG.md](docs/BACKLOG.md) e implementarlo
 3. Ejecutar tests localmente
 4. Crear Pull Request
+
+Si trabajas con un agente de código, sus instrucciones están en [AGENTS.md](AGENTS.md).
 
 ## Estándares de Código
 
