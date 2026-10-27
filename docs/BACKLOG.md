@@ -18,7 +18,7 @@ Fuente única del trabajo pendiente del proyecto. Revisión inicial: 2026-10-26 
 ## Decisiones pendientes
 
 - [ ] D-1 Acceso a la API. Hoy es pública, sin autenticación, con CORS `*` y sin throttling. Opciones: (a) pública con throttling y límite de concurrencia; (b) IAM (SigV4); (c) JWT authorizer si habrá frontend. Recomendado: (a) desde el primer despliegue; (b) o (c) si se abre a terceros. Afecta B-04 y B-07.
-- [ ] D-2 Ruta ZIP. CI y deploy solo usan la imagen. `deploy/packager.py` instala wheels de la plataforma local y su límite de 50 MB rechaza el paquete real (~74 MB comprimido con wheels Linux). Recomendado: eliminarla. Afecta B-10.
+- [ ] D-2 Ruta ZIP. CI y deploy solo usan la imagen. `src/ml_lambda/deploy/packager.py` instala wheels de la plataforma local y su límite de 50 MB rechaza el paquete real (~74 MB comprimido con wheels Linux). Recomendado: eliminarla. Afecta B-10.
 - [ ] D-3 Promoción entre entornos. Hoy hay un repo ECR por entorno y el deploy reentrena el modelo. Recomendado: entrenar y construir una vez y promover el mismo digest. Afecta B-06.
 
 ## P0 · Antes de desplegar
@@ -67,7 +67,7 @@ Fuente única del trabajo pendiente del proyecto. Revisión inicial: 2026-10-26 
 ## P3 · Limpieza y documentación
 
 - [ ] B-10 Limpieza
-  - Ruta ZIP, según D-2: `deploy/packager.py`, `scripts/package.py`, `scripts/export_requirements.py`, `PackageTooLargeError` y `tests/unit/test_packager.py`.
+  - Ruta ZIP, según D-2: `src/ml_lambda/deploy/packager.py`, `scripts/package.py`, `scripts/export_requirements.py`, `PackageTooLargeError` y `tests/unit/test_packager.py`.
   - Sin uso: `AWSCredentialsError` y `DeploymentError`; en `config`, `max_body_size` (duplica `MAX_BODY_SIZE` del validator), `log_level` (Terraform define `LOG_LEVEL` y nadie lo lee), `lambda_memory` (256; Terraform usa 512) y `metadata_*`.
   - Decidir si se quedan `scripts/verify_*.py` (checkpoints del spec) y si se versiona `.kiro/` (`.gitignore` lo ignora, pero su comentario dice "mantener en repo").
 - [ ] B-11 Documentación alineada con el código (después de P0 y P1)
